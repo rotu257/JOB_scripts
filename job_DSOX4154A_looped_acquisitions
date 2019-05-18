@@ -1,0 +1,43 @@
+#!/bin/bash
+
+i=3
+counter=1
+echo 'STARTING MEASUREMENT'
+
+## for going up ###
+#mkdir up
+#cd up
+
+# loop to increase the current with value volt
+for volts in $(seq 0.24 0.02 0.36)
+do 
+
+# display value of the current
+echo $volts
+
+ set the current
+ set_ITC4001 -a $volts 1
+
+
+    for counter in $(seq 1 1 500)
+    do 
+
+    
+    #autoget_DSOX4154A -o filename$i\_$counter 1    #####rescaling b4 acquiring
+    get_DSOX4154A -o filename$i\_$counter 1
+    sleep 0.3
+    
+    echo $counter
+    ((counter++))
+ 
+    done
+    
+    
+i=$(($i+1))
+done
+
+
+### To turn off pump afterwards
+ set_ITC4001 -a 0.0 1
+
+echo 'FINISHING MEASUREMENT'

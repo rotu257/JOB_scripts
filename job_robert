@@ -1,0 +1,66 @@
+#!/bin/bash
+
+i=1
+counter=1
+echo 'STARTING MEASUREMENT'
+
+
+
+## RAMP PUMP UP ###
+
+
+# loop to derease the current with value volt
+#for volts in $(seq 0.9 -0.01 0.0)   #
+for volts in $(seq 0.1 0.01 0.35)
+do 
+
+echo $volts
+
+# set the current
+set_ITC4001 -a $volts 1
+
+# acquiring from the scope
+get_lecroy -m 3 -o $i 3
+
+i=$(($i+1))
+done
+
+
+##############################################################################
+############## THIS PART IS TO COLLECT MULTIPLE SCANS FOR HIGHER RESOLUTION##
+#############################################################################
+
+## loop to increase the current with value volt
+#for volts in $(seq 0.14 0.02 0.8)
+#do 
+
+## display value of the current
+#echo $volts
+
+# set the current
+# set_ITC4001 -a $volts 1
+
+
+#    for counter in $(seq 1 1 400)
+#    do 
+
+## acquiring from the scope
+#get_lecroy -m 3 -o $i\_$counter 2
+
+#    sleep 0.2
+    
+#    echo $counter
+#    ((counter++))
+ 
+#    done
+    
+    
+#i=$(($i+1))
+#done
+
+
+
+### To turn off pump afterwards ###
+set_ITC4001 -a 0.0 1
+
+echo 'FINISHING MEASUREMENT'

@@ -1,0 +1,34 @@
+#!/bin/bash
+
+i=1
+counter=1
+echo 'STARTING MEASUREMENT'
+
+## for going up ###
+#mkdir up
+#cd up
+
+# loop to increase the current with value volt
+for volts in $(seq 0.0 0.01 0.9)
+
+do 
+# display value of the current
+echo $volts
+
+ #set the current
+ set_ITC4001 -a $volts 2
+    sleep 1
+
+# acquiring from LIGHTWAVE PM
+get_fpm8210 -o filename$i 
+
+    sleep 0.1
+    
+i=$(($i+1))
+done
+
+
+### To turn off pump afterwards ###
+set_ITC4001 -a 0.0 2
+
+echo 'FINISHING MEASUREMENT'

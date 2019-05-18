@@ -1,0 +1,106 @@
+#!/bin/bash
+    i=1
+    counter=1
+    echo 'STARTING MEASUREMENT'
+
+## for going up ###
+#mkdir up
+#cd up
+
+# SET THE APPROP RANGE FOR ITC4001 DIODE
+    volts_LD3=0.39
+    
+    volts_LD5=0.01
+
+# DISPLAY VALUE OF CURRENT FORM ITC4001 ####
+    echo "${volts_LD3} VOLTS ON LASER SIGNAL"
+    echo "${volts_LD5} VOLTS ON LASER PERTURBATION"
+
+
+# SET THE CURRENT
+   set_ITC4001 -a $volts_LD3 1
+   set_ITC4001 -a $volts_LD5 2
+
+
+# SETTING UP THE PULSE GENERATOR FOR CHANNEL 1 TRIGGER
+    set_TTITGF3162 -c 'CHN 1'
+    sleep 3
+    set_TTITGF3162 -c 'BEEPMODE OFF'
+    sleep 3
+    set_TTITGF3162 -q '*OPC?'
+    set_TTITGF3162 -c 'WAVE PULSE'
+    sleep 3
+    set_TTITGF3162 -q '*OPC?'
+    set_TTITGF3162 -f 50
+    sleep 3
+    set_TTITGF3162 -q '*OPC?'
+    set_TTITGF3162 -d 400e-6
+    sleep 3
+    set_TTITGF3162 -q '*OPC?'
+    set_TTITGF3162 -o 0.0
+    sleep 3
+    set_TTITGF3162 -q '*OPC?'
+    set_TTITGF3162 -p 50e-6
+    sleep 1
+
+
+for laser_current in $(seq 0.1 0.01 0.35)
+do
+
+
+
+        for amplitude in $(seq 3.5 1 3.5)
+        do     
+                offset=`echo "scale = 3; $amplitude*0.5" |bc`
+                
+                ### setting the pulse generator   
+                set_TTITGF3162 -a $amplitude -o $offset
+
+                sleep 1
+                
+                        
+                echo "SIGGEN SET TO ${amplitude}V and OFFSET value ${offset}V "
+                
+                
+                
+                
+                set_ITC4001 -a $laser_current 2
+                
+                echo "LD5 DIODE SET TO ${laser_current}V "
+                sleep 3
+            
+            
+    ### acquiring FROM LECROY;SPECIALMODE 2\TIMES ON PERT_SIG(CH2) then SAVE PERT_SIG(CH2), excitory_SIG(CH3)
+
+
+            for counter in $(seq 1 1 8)
+            do 
+
+
+            get_lecroy -m 2,2 -o $i\scan_$counter\Count_$laser_current\PertVOLT 2,3,4
+            
+            
+            sleep 0.5
+                
+                echo "COUNT $counter"
+                ((counter++))
+            
+            done                     
+                
+                i=$(($i+1)) 
+        done
+
+
+done
+        
+   
+    
+
+### To turn voltage to lowest value afterwards ###
+    set_TTITGF3162 -a 3.5 -o 1.75
+
+### To turn off pump afterwards ###
+   set_ITC4001 -a 0.390 1
+   set_ITC4001 -a 0.1 2
+
+echo 'FINISHING MEASUREMENT'

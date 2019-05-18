@@ -1,0 +1,79 @@
+#!/bin/bash
+    i=1
+    echo 'STARTING MEASUREMENT'
+
+## for going up ###
+#mkdir up
+#cd up
+
+# SET THE APPROP RANGE FOR ITC4001 DIODE
+#    volts_LD3=0.1;
+     volts_LD5=0.1;
+
+# DISPLAY VALUE OF CURRENT FORM ITC4001 ####
+#    echo "${volts_LD3} VOLTS ON LASER SIGNAL"
+    echo "${volts_LD5} VOLTS ON LASER PERTURBATION"
+
+
+# SET THE CURRENT
+#   set_ITC4001 -a $volts_LD3 1
+   set_ITC4001 -a $volts_LD5 2
+
+
+# SETTING UP THE PULSE GENERATOR FOR CHANNEL 1 TRIGGER
+    set_TTITGF3162 -c 'CHN 1'
+    sleep 3
+    set_TTITGF3162 -q '*OPC?'
+    set_TTITGF3162 -c 'WAVE PULSE'
+    sleep 3
+    set_TTITGF3162 -q '*OPC?'
+    set_TTITGF3162 -f 90
+    sleep 3
+    set_TTITGF3162 -q '*OPC?'
+    set_TTITGF3162 -d 3e-6
+    sleep 3
+    set_TTITGF3162 -q '*OPC?'
+    set_TTITGF3162 -o 0.0
+    sleep 3
+    set_TTITGF3162 -q '*OPC?'
+    set_TTITGF3162 -p 30e-9
+    sleep 3
+
+
+    for amplitude in $(seq 10e-3 10e-3 9)
+    do     
+            offset=`echo "scale = 3; $amplitude*0.5" |bc`
+            
+            ### setting the pulse generator   
+            set_TTITGF3162 -a $amplitude -o $offset
+            
+            
+            echo "SIGGEN SET TO ${amplitude}V PERTURBATION and ${offset}V OFFSET values "
+            echo ""    
+        
+            sleep 3
+
+        
+        
+### acquiring FROM LECROY;SPECIALMODE 2\TIMES ON PERT_SIG(CH2) then SAVE PERT_SIG(CH2), TRIG_SIG(CH3),LASING_SIG(CH4)
+            get_lecroy -m 2,2 -o $i\PERTURBATION_scan\_$amplitude 2
+            
+            
+            
+            # acquiring from LIGHTWAVE PM
+            get_fpm8210 -o filename$i 
+            
+                     
+            sleep 1
+            i=$(($i+1)) 
+    done
+    
+    
+
+### To turn voltage to lowest value afterwards ###
+    set_TTITGF3162 -a 10e-3 -o 0
+
+### To turn off pump afterwards ###
+#   set_ITC4001 -a 0.0 1
+
+echo 'FINISHING MEASUREMENT'
